@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "device_id": "exilir-c5-001122334455",
+  "boot_id": "A1B2C3D4",
+  "seq": 12,
+  "session": 1,
+  "inference_seq": 4,
+  "uptime_ms": 12000,
+  "steps": 20,
+  "activity": "jalan",
+  "raw_label": "jalan",
+  "confidence": 0.92,
+  "scores": {
+    "diam": 0.04,
+    "jalan": 0.92,
+    "lari": 0.04
+  },
+  "inference_ms": 14,
+  "dsp_ms": 12,
+  "nn_ms": 2,
+  "model_age_ms": 180,
+  "model_error": 0,
+  "state": "stable",
+  "sample_gaps": 0,
+  "sensor_errors": 0,
+  "dropped_windows": 0,
+  "firmware": "9.1.0-mqtt"
+}

@@ -1,0 +1,30 @@
+# Generated dashboard previews and browser test reports
+/.preview/
+playwright-report/
+test-results/
+coverage/
+
+# Local dependencies, builds and caches
+node_modules/
+dist/
+build/
+.cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local environment and logs
+.env
+.env.*
+!.env.example
+!.env.sample
+*.log
+
+# OS metadata and editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo

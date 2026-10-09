@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Exilir · Dashboard Aktivitas</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="vendor/mqttws31.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="Exilir dashboard"><span>ex</span>ilir<span class="brand-dot">.</span></a>
+    <span class="course">AIoT Basic <span> / </span> Chapter 9</span>
+    <span id="broker-status" class="badge neutral" role="status">Belum terhubung</span>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">DASHBOARD AKTIVITAS</p><h1>Dari gerakan ke data.</h1><p>Hasil TinyML dan hitungan langkah dari ESP32, diperbarui lewat MQTT.</p></div>
+      <div class="device-status"><span id="device-status" class="badge neutral">Menunggu perangkat</span><span id="last-update">Belum ada data</span></div>
+    </section>
+
+    <section class="panel connection-panel" aria-labelledby="connection-title">
+      <div class="section-heading"><h2 id="connection-title">Hubungkan perangkat</h2><span>Salin topic dari Serial Monitor</span></div>
+      <form id="connection-form">
+        <label for="broker-url">Broker WebSocket
+          <input id="broker-url" type="url" value="wss://broker.emqx.io:8084/mqtt" required spellcheck="false" autocomplete="off">
+        </label>
+        <label for="topic">Topic telemetry
+          <input id="topic" type="text" placeholder="exilir/aiot/ch9/exilir-c5-XXXXXXXXXXXX/telemetry" required spellcheck="false" autocomplete="off">
+        </label>
+        <div class="connection-actions"><button id="connect" type="submit" class="primary">Hubungkan</button><button id="disconnect" type="button" class="secondary" disabled>Putuskan</button></div>
+      </form>
+      <div class="connection-bottom"><p id="message" role="status">Isi topic perangkat. Untuk mencoba tampilan tanpa board, gunakan demo.</p><button id="demo" type="button" class="text-button">Coba demo</button></div>
+    </section>
+
+    <section class="metrics" aria-label="Ringkasan perangkat">
+      <article class="metric"><p>Jumlah langkah</p><strong id="steps">—</strong><small>Sejak reset sesi perangkat</small></article>
+      <article id="activity-card" class="metric activity unknown"><p>Aktivitas stabil</p><strong id="activity">—</strong><small id="decision-note">Menunggu hasil voting</small></article>
+      <article class="metric"><p>Confidence raw</p><strong id="confidence">—</strong><small id="raw-label">Prediksi terbaru: —</small></article>
+      <article class="metric"><p>Waktu inference</p><strong id="inference">—</strong><small id="timing-detail">DSP + neural network</small></article>
+    </section>
+
+    <section class="visual-grid">
+      <article class="panel scores-panel">
+        <div class="section-heading"><h2>Skor tiap kelas</h2><span>Hasil model terbaru</span></div>
+        <div class="score-row"><div><span><i class="dot diam"></i>Diam</span><strong id="score-diam">—</strong></div><div class="track"><div id="bar-diam" class="fill diam" role="progressbar" aria-label="Skor diam" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div>
+        <div class="score-row"><div><span><i class="dot jalan"></i>Jalan</span><strong id="score-jalan">—</strong></div><div class="track"><div id="bar-jalan" class="fill jalan" role="progressbar" aria-label="Skor jalan" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div>
+        <div class="score-row"><div><span><i class="dot lari"></i>Lari</span><strong id="score-lari">—</strong></div><div class="track"><div id="bar-lari" class="fill lari" role="progressbar" aria-label="Skor lari" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div>
+        <p class="caption">Aktivitas stabil memakai confidence &gt;80% dan voting 2 dari 3 window. Hitungan langkah diproses terpisah.</p>
+      </article>
+      <article class="panel chart-panel">
+        <div class="section-heading"><h2>Riwayat confidence</h2><span id="chart-caption">Belum ada hasil model</span></div>
+        <svg id="chart" viewBox="0 0 620 190" role="img" aria-label="Grafik confidence raw untuk maksimal 40 hasil inference terbaru">
+          <g class="chart-grid"><line x1="36" y1="20" x2="600" y2="20"/><line x1="36" y1="88" x2="600" y2="88"/><line x1="36" y1="156" x2="600" y2="156"/></g>
+          <g class="chart-labels"><text x="0" y="24">100</text><text x="8" y="92">50</text><text x="15" y="160">0</text><text x="36" y="180">Lama</text><text x="561" y="180">Terbaru</text></g>
+          <line class="threshold" x1="36" y1="47.2" x2="600" y2="47.2"/><text class="threshold-label" x="570" y="42">80%</text>
+          <polyline id="chart-line" points=""/><circle id="chart-point" cx="600" cy="156" r="4" hidden/>
+        </svg>
+        <p class="caption">Satu titik per hasil inference. Nilai confidence tinggi tetap perlu dibandingkan dengan aktivitas nyata.</p>
+      </article>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel">
+        <div class="section-heading"><h2>Status perangkat</h2><span id="data-mode">Live MQTT</span></div>
+        <dl class="device-details">
+          <div><dt>Device ID</dt><dd id="device-id">—</dd></div><div><dt>Firmware</dt><dd id="firmware">—</dd></div>
+          <div><dt>Uptime</dt><dd id="uptime">—</dd></div><div><dt>Usia hasil model</dt><dd id="model-age">—</dd></div>
+          <div><dt>Slot sampling terlewat</dt><dd id="sample-gaps">—</dd></div><div><dt>Error sensor / model</dt><dd id="errors">—</dd></div>
+          <div><dt>Window model terlewat</dt><dd id="dropped-windows">—</dd></div>
+        </dl>
+      </article>
+      <article class="panel history-panel">
+        <div class="section-heading"><h2>Pesan terbaru</h2><span>12 pesan terakhir</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Aktivitas</th><th>Raw</th><th>Langkah</th></tr></thead><tbody id="history"><tr><td colspan="4" class="empty">Data akan muncul setelah perangkat mengirim telemetry.</td></tr></tbody></table></div>
+      </article>
+    </section>
+    <details class="panel payload-panel"><summary>Payload MQTT terakhir</summary><pre id="payload">Belum ada pesan JSON.</pre></details>
+    <footer>Broker publik untuk praktik. Siapa pun dapat membaca atau mengirim pesan pada topic yang sama; gunakan data latihan tanpa informasi sensitif.</footer>
+  </main>
+</body>
+</html>
